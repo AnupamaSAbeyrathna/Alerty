@@ -1,12 +1,15 @@
 import os
 
 from logging.config import fileConfig
-from unittest.mock import Base
+from dotenv import load_dotenv
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+# Load .env so DATABASE_URL is available
+load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,10 +22,10 @@ config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# Import Base and all models so autogenerate can detect every table
+from app.db import Base
+import app.models  # noqa: F401 — registers all models against Base.metadata
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
