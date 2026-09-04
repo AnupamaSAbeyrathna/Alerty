@@ -8,6 +8,8 @@ POST /events    — submit a new event (auth + validation + DB write)
 GET  /events/{id} — fetch event status
 """
 
+from Alerty.app.auth import verify_api_key
+from app.models import ApiKey
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -52,6 +54,7 @@ def root():
 )
 def create_event(
     body: EventCreate,
+    api_key: ApiKey = Depends(verify_api_key), # 1. Authentication via custom dep
     db: Session = Depends(get_db),
 ):
     """
@@ -67,12 +70,10 @@ def create_event(
     # Temporary: use a fixed placeholder org/api_key UUID until auth is in place.
     # Step 3 will replace this with real API-key verification.
     import uuid
-    PLACEHOLDER_ORG_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
-    PLACEHOLDER_KEY_ID = uuid.UUID("00000000-0000-0000-0000-000000000002")
 
     event = Event(
-        organization_id=PLACEHOLDER_ORG_ID,
-        api_key_id=PLACEHOLDER_KEY_ID,
+        organization_id=api_key.organization_id,
+        api_key_id=api_key.id,
         idempotency_key=body.idempotency_key,
         event_type=body.event_type,
         payload=body.payload,
